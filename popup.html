@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+
+<head>
+  <!-- META -->
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 350px;
+    }
+
+    section {
+      padding: 5px;
+      border-radius: 1px;
+      box-shadow: 2px 2px 4px gray;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-weight: lighter;
+      margin: 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 5px;
+      border: solid 1px #A0C34C;
+    }
+
+    .a-check {
+      display: none;
+    }
+
+    .a-label {
+      cursor: pointer;
+      background: #62A920;
+      color: #fff;
+      display: block;
+      padding: 5px;
+    }
+
+    .a-content {
+      border: 1px solid #62A920;
+      height: 0;
+      opacity: 0;
+      padding: 0;
+      margin-bottom: 3px;
+      transition: .5s;
+      visibility: hidden;
+    }
+
+    ol {
+      padding-top: 0;
+      padding-left: 15px;
+    }
+
+    .a-check:checked+.a-label+.a-content {
+      height: 110px;
+      opacity: 1;
+      padding: 5px;
+      visibility: visible;
+    }
+  </style>
+
+</head>
+
+<body>
+  <section>
+
+
+    <h2>使い方</h2>
+    <input id="a-check1" class="a-check" type="checkbox">
+    <label class="a-label" for="a-check1">将棋ウォーズ</label>
+    <div class="a-content">
+      <ol>
+        <li><a href="https://shogiwars.heroz.jp/web_app/standard/" target="_blank">将棋ウォーズ</a>にログイン</li>
+        <li>トップ画面で棋譜ボタンをクリック</li>
+        <li>棋譜の一覧からダウンロードしたい棋譜をクリック</li>
+        <li>対局画面が表示された状態で[棋譜ダウンロード]ボタンをクリック</li>
+      </ol>
+    </div>
+    <input id="a-check2" class="a-check" type="checkbox">
+    <label class="a-label" for="a-check2">ぴよ将棋</label>
+    <div class="a-content">
+      <ol>
+        <li><a href="https://www.studiok-i.net/ps/" target="_blank">ぴよ将棋w</a>を開く</li>
+        <li>対局を開始</li>
+        <li>対局画面が表示された状態で[棋譜ダウンロード]ボタンをクリック</li>
+      </ol>
+    </div>
+  </section>
+  <section>
+    <h2>実行</h2>
+    <button id="btn" class="a-label">棋譜ダウンロード</button>
+  </section>
+  <script src="./popup.js"></script>
+</body>
+
+</html>
