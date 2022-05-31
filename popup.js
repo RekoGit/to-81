@@ -1,24 +1,11 @@
-/*
-手合割
-「平手」、「香落ち」、「右香落ち」、「角落ち」、「飛車落ち」、「飛香落ち」、「二枚落ち」、「三枚落ち」、「四枚落ち」、「五枚落ち」、「左五枚落ち」、「六枚落ち」、「左七枚落ち」、「右七枚落ち」、「八枚落ち」、「十枚落ち」、「その他」
-
-<駒> 駒名
-玉、飛、龍、角、馬、金、銀、成銀、桂、成桂、香、成香、歩、と
-龍を「竜」であらわす場合もある。
-成銀を「全」、成桂を「圭」、成香を「杏」であらわす場合もある（「詰将棋パラダイス」でも使用）。
-
-
-# 機能追加
-柿木将棋に対応(sjisでexport)
-ピヨ将棋↓で手合割に対応　$('#selectTeai').val()
-
-# バグ
-成銀、成桂が読み込めないバグに対応
-
-UTF-8は暗黙にUTF-8-BOMに読み替え
-
-*/
-
+/**********************************************************************
+ * 変更履歴
+ * 2022-05-31 
+ * ・Kif for シリーズに対応（実のところSJIS対応ではなく、拡張子をkifuにすることで対応）
+ * ・将棋ウォーズのリンク版（Twitterリンクからの表示）に対応
+ * ・ピヨ将棋の手合割を反映するよう変更
+ * ・81道場で成銀、成桂が読み込めないバグに対応
+**********************************************************************/
 
 document.getElementById("btn-81").addEventListener("click", async () => {
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -57,6 +44,46 @@ function export_kif(enc) {
   function format_timestamp() {
     let now = new Date();
     return zero_padding(now.getFullYear(), 4) + zero_padding((now.getMonth() + 1), 2) + zero_padding(now.getDate(), 2) + '_' + zero_padding(now.getHours(), 2) + zero_padding(now.getMinutes(), 2) + zero_padding(now.getSeconds(), 2);
+  }
+
+  function replace_teai(teai) {
+    //「平手」、「香落ち」、「右香落ち」、「角落ち」、「飛車落ち」、「飛香落ち」、「二枚落ち」、「三枚落ち」、「四枚落ち」、「五枚落ち」、「左五枚落ち」、「六枚落ち」、「左七枚落ち」、「右七枚落ち」、「八枚落ち」、「十枚落ち」、「その他」
+    switch (teai) {
+      case '平手':
+        return 'hirate';
+      case '香落ち':
+        return 'kyo-drop';
+      case '右香落ち':
+        return 'right-kyo-drop';
+      case '角落ち':
+        return 'kaku-drop';
+      case '飛車落ち':
+        return 'hisha-drop';
+      case '飛香落ち':
+        return 'hikyo-drop';
+      case '二枚落ち':
+        return '2drop';
+      case '三枚落ち':
+        return '3drop';
+      case '四枚落ち':
+        return '4drop';
+      case '五枚落ち':
+        return '5drop';
+      case '左五枚落ち':
+        return 'left5drop';
+      case '六枚落ち':
+        return '6drop';
+      case '左七枚落ち':
+        return 'left7drop';
+      case '右七枚落ち':
+        return 'right7drop';
+      case '八枚落ち':
+        return '8drop';
+      case '十枚落ち':
+        return '10drop';
+      default:
+        return '';
+    }
   }
 
   function generate_filename(src) {
@@ -193,7 +220,7 @@ function export_kif(enc) {
       info = document.querySelectorAll('[id^=select_kifu]');
       if (info) {
         // ぴよ将棋として処理
-        filename = generate_filename('piyo' + format_timestamp());
+        filename = generate_filename('piyo_' + replace_teai(document.getElementById('selectTeai').value) + '_' + format_timestamp());
         kifu = document.querySelectorAll("#select_kifu option");
         kifu.forEach(function (te) {
           txt = te.innerHTML;
