@@ -1,5 +1,9 @@
 /**********************************************************************
  * 変更履歴
+ * 2022-11-19
+ * ・(将棋ウォーズ)棋譜の先手、後手の表示が▲または△から、☗または☖に変更されたことに対応
+ * ・(将棋ウォーズ)英語表記の棋譜には未対応である旨の文言を追加（次のバージョンで対応しようかな）
+ * 
  * 2022-05-31 
  * ・Kif for シリーズに対応（実のところSJIS対応ではなく、拡張子をkifuにすることで対応）
  * ・将棋ウォーズのリンク版（Twitterリンクからの表示）に対応
@@ -184,7 +188,7 @@ function export_kif(enc) {
           if (txt.length > 0) {
             teban = txt.match(/[0-9]+/);
             if (teban) {
-              orig = txt.match(/(▲|△)[1-9][1-9].*/)[0];
+              orig = txt.match(/(▲|△|☗|☖)[1-9][1-9].*/)[0];
               formatted = teban + ' ' + single_to_double(orig.substring(1, 2)) + int_to_kansuji(orig.substring(2, 3)) + orig.substring(3) + '   ( 0:00/00:00:00)'
               records.push(formatted);
             }
