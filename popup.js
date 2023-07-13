@@ -1,5 +1,8 @@
 /**********************************************************************
  * 変更履歴
+ * 2023-07-10
+ * ・クリップボードにコピーする機能を追加
+ * 
  * 2022-11-19
  * ・(将棋ウォーズ)棋譜の先手、後手の表示が▲または△から、☗または☖に変更されたことに対応
  * ・(将棋ウォーズ)英語表記の棋譜には未対応である旨の文言を追加（次のバージョンで対応しようかな）
@@ -26,6 +29,17 @@ document.getElementById("btn-kaki").addEventListener("click", async () => {
     target: { tabId: tab.id },
     function: export_kif,
     args: ['kif for'],
+  });
+});
+
+document.getElementById("btn-clip").addEventListener("click", async () => {
+  window.close();
+
+  let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    function: export_kif,
+    args: ['clip'],
   });
 });
 
@@ -101,21 +115,39 @@ function export_kif(enc) {
 
   function export_to_file(records) {
     let data = records.join('\r\n');
-    let blob;
-    // SJIS対応はせず、ファイル拡張子でkif forシリーズに対応
-    let bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-    blob = new Blob([bom, data], { type: 'text/csv' });
-    // ネイティブのencodeを有効にする場合はこちら
-    // blob = new Blob([data], { type: 'text/csv' });
 
-    let url = (window.URL || window.webkitURL).createObjectURL(blob);
-    let link = document.createElement('a');
-    link.download = filename;
-    link.href = url;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (enc == 'clip') {
+      navigator.permissions.query({ name: "clipboard-write" }).then((result) => {
+        if (result.state === "granted" || result.state === "prompt") {
+          /* write to the clipboard now */
+          navigator.clipboard.writeText(data).then(() => {
+            /* clipboard successfully set */
+          }, () => {
+            /* clipboard write failed */
+            console.log('clipboard write failed')
+          });
+        }
+      });
+
+    } else {
+      let blob;
+      // SJIS対応はせず、ファイル拡張子でkif forシリーズに対応
+      let bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      blob = new Blob([bom, data], { type: 'text/csv' });
+      // ネイティブのencodeを有効にする場合はこちら
+      // blob = new Blob([data], { type: 'text/csv' });
+
+      let url = (window.URL || window.webkitURL).createObjectURL(blob);
+      let link = document.createElement('a');
+      link.download = filename;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    }
   }
+
   /***************************************************************
    * 対応済みサイトチェック
    * 将棋ウォーズ'https://shogiwars.heroz.jp/web_app/standard/'})
@@ -185,6 +217,7 @@ function export_kif(enc) {
         kifu = document.querySelectorAll("#kifu_child span");
         kifu.forEach(function (te) {
           txt = te.innerHTML;
+          console.log(txt);
           if (txt.length > 0) {
             teban = txt.match(/[0-9]+/);
             if (teban) {
@@ -246,5 +279,3 @@ function export_kif(enc) {
       alert('何かがうまくいかなかったようです');
   }
 };
-
-
