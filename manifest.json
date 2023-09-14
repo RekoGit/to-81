@@ -1,7 +1,7 @@
 {
   "name": "to_81",
   "description": "将棋ウォーズ/ピヨ将棋wの棋譜をクリップボードにコピーしたり「81道場」及び「Kifu for シリーズ」で読み込める形式で保存します",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "manifest_version": 3,
   "permissions": [
     "activeTab",

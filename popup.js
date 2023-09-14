@@ -1,5 +1,8 @@
 /**********************************************************************
  * 変更履歴
+ * 2023-09-14
+ * ・(ぴよ将棋)棋譜リンクから開いた場合、手合いが取得できないためデフォルトで"平手"をセット
+ * 
  * 2023-07-10
  * ・クリップボードにコピーする機能を追加
  * 
@@ -193,7 +196,12 @@ function export_kif(enc) {
       break;
 
     case 'piyo':
-      records.push('手合割：' + document.getElementById('selectTeai').value);
+      if (document.getElementById('selectTeai').length == 0) {
+        // 手合割が取得できない場合は平手をセット
+        records.push('手合割：平手');
+      } else {
+        records.push('手合割：' + document.getElementById('selectTeai').value);
+      }
       break;
   }
   records.push('下手：プレイヤー');
