@@ -1,5 +1,8 @@
 /**********************************************************************
  * 変更履歴
+ * 2024-07-12
+ * ・対局者のIDが取得できない場合でもファイル名を生成できるように修正
+ * 
  * 2023-09-14
  * ・(ぴよ将棋)棋譜リンクから開いた場合、手合いが取得できないためデフォルトで"平手"をセット
  * 
@@ -45,6 +48,17 @@ document.getElementById("btn-clip").addEventListener("click", async () => {
     args: ['clip'],
   });
 });
+
+// document.getElementById("btn-svg").addEventListener("click", async () => {
+//   window.close();
+
+//   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+//   chrome.scripting.executeScript({
+//     target: { tabId: tab.id },
+//     function: export_kif,
+//     args: ['svg'],
+//   });
+// });
 
 function export_kif(enc) {
   function single_to_double(num) {
@@ -131,7 +145,31 @@ function export_kif(enc) {
           });
         }
       });
+    } else if (enc == 'svg') {
+      data = `<svg xmlns="http://www.w3.org/2000/svg" width="300"
+      height="200">' +
+         '<foreignObject width="100%" height="100%">' +
+            '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size:50px">' +
+               'Simply Easy ' +
+               '<span style="color:blue;">' +
+               'Learning</span>' +
+            '</div>' +
+         '</foreignObject>' +
+      '</svg>`;
+      var img1 = new Image();
+      var svg = new Blob([data], { type: 'image/svg+xml' });
 
+      navigator.permissions.query({ name: "clipboard-write" }).then((result) => {
+        if (result.state === "granted" || result.state === "prompt") {
+          /* write to the clipboard now */
+          navigator.clipboard.writeText(svg).then(() => {
+            /* clipboard successfully set */
+          }, () => {
+            /* clipboard write failed */
+            console.log('clipboard write failed')
+          });
+        }
+      });
     } else {
       let blob;
       // SJIS対応はせず、ファイル拡張子でkif forシリーズに対応
@@ -158,18 +196,16 @@ function export_kif(enc) {
    * ピヨ将棋 'https://www.studiok-i.net/ps/'
    *************************************************************/
   let app = 'unknown';
-  // IDで検索
+  // 将棋ウォーズWeb版
   let apps = { sw: 'kifu_child', piyo: 'select_kifu' };
   for (let key in apps) {
     if (document.querySelectorAll('[id^=' + apps[key] + ']').length > 0) {
-      console.log(key + 'として処理……');
       app = key;
       break;
     }
   }
-  // classで検索
-  if (document.querySelectorAll('[class^=Playback__kif___1evzo]').length > 0) {
-    console.log('shogi warsのtwitter linkとして処理……');
+  // Xリンク
+  if (location.href.indexOf('shogiwars.heroz.jp/games') > 0) {
     app = 'sw_link';
   }
   if (app == 'unknown') {
@@ -218,40 +254,46 @@ function export_kif(enc) {
 
   switch (app) {
     case 'sw':
-      info = document.querySelectorAll('[id^=twitter-widget-]')[0].dataset.url;
-      if (info) {
-        // 将棋ウォーズとして処理
-        filename = generate_filename(info.substring(info.lastIndexOf('/') + 1));
-        kifu = document.querySelectorAll("#kifu_child span");
-        kifu.forEach(function (te) {
-          txt = te.innerHTML;
-          console.log(txt);
-          if (txt.length > 0) {
-            teban = txt.match(/[0-9]+/);
-            if (teban) {
-              orig = txt.match(/(▲|△|☗|☖)[1-9][1-9].*/)[0];
-              formatted = teban + ' ' + single_to_double(orig.substring(1, 2)) + int_to_kansuji(orig.substring(2, 3)) + orig.substring(3) + '   ( 0:00/00:00:00)'
-              records.push(formatted);
-            }
-          }
-        });
-        export_to_file(records);
-      }
-      break;
+      // 将棋ウォーズとして処理
 
+      // ファイル名の初期値をセット（プレイヤー情報が取得できればセット）
+      filename = generate_filename(format_timestamp());
+      web_view = document.getElementById("web_view").contentWindow.document.body.getElementsByClassName("game_fav_form");
+      if (web_view.length > 0) {
+        info = web_view[0].action;
+        console.log(info);
+        // filename = generate_filename(info.substring(info.lastIndexOf('game_id') + 8, info.indexOf('-', info.indexOf('-') + 1)));
+        filename = generate_filename(info.substring(info.lastIndexOf('game_id') + 8, info.lastIndexOf('&locale')));
+      }
+
+      kifu = document.querySelectorAll("#kifu_child span");
+      kifu.forEach(function (te) {
+        txt = te.innerHTML;
+        console.log(txt);
+        if (txt.length > 0) {
+          teban = txt.match(/[0-9]+/);
+          if (teban) {
+            orig = txt.match(/(▲|△|☗|☖)[1-9][1-9].*/)[0];
+            formatted = teban + ' ' + single_to_double(orig.substring(1, 2)) + int_to_kansuji(orig.substring(2, 3)) + orig.substring(3) + '   ( 0:00/00:00:00)'
+            records.push(formatted);
+          }
+        }
+      });
+      export_to_file(records);
+      break;
 
     case 'sw_link':
       info = location.href;
       if (info) {
         // 将棋ウォーズとして処理
         filename = generate_filename(info.substring(info.lastIndexOf('/') + 1));
-        kifu = document.querySelectorAll(".Playback__kif___1evzo option");
+        kifu = document.querySelectorAll("select option");
         kifu.forEach(function (te) {
           txt = te.innerHTML;
           if (txt.length > 0) {
             teban = txt.match(/[0-9]+/);
             if (teban) {
-              orig = txt.match(/(▲|△)[1-9][1-9].*/)[0];
+              orig = txt.match(/(▲|△|☗|☖)[1-9][1-9].*/)[0];
               formatted = teban + ' ' + single_to_double(orig.substring(1, 2)) + int_to_kansuji(orig.substring(2, 3)) + orig.substring(3) + '   ( 0:00/00:00:00)'
               records.push(formatted);
             }
